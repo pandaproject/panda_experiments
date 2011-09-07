@@ -1,0 +1,23 @@
+<VirtualHost *:80>
+    ServerName panda_experiments.panda.tribapps.com
+    ServerAlias www.panda_experiments.panda.tribapps.com
+    
+    Redirect permanent /favicon.ico http://media.panda.tribapps.com/panda_experiments/na_media/favicon.ico
+    
+    Alias /robots.txt /home/newsapps/sites/panda_experiments/media/robots.txt
+
+    ErrorLog /home/newsapps/logs/panda_experiments.error.log
+    LogLevel warn
+
+    ServerSignature Off
+    
+    RewriteEngine on
+    # canonical hostname
+    RewriteCond %{HTTP_HOST} !^panda_experiments.panda.tribapps.com [NC] 
+    RewriteRule ^/(.*)  http://panda_experiments.panda.tribapps.com/$1 [L,R]
+    
+    DocumentRoot /home/newsapps/sites/panda_experiments/media/
+    
+    RewriteCond %{REQUEST_URI} !/maintenance.html$ 
+    RewriteRule $ /maintenance.html [R=302,L]
+</VirtualHost>
