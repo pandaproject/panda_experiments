@@ -14,7 +14,8 @@ class Command(BaseCommand):
     args = '[number of test rows to create]'
 
     def handle(self, *args, **kwargs):
-        print 'Derializing json with stdlib'
+        print 'Querying and deserializing %i records' % TestData.objects.all().count()
+
         start = time.time()
 
         for testdata in TestData.objects.all():
@@ -23,9 +24,8 @@ class Command(BaseCommand):
         end = time.time()
         elapsed = end - start
 
-        print 'Finished in %.2f seconds' % elapsed
+        print 'stdlib json: %.2f seconds' % elapsed
 
-        print 'Derializing json with django simplejson'
         start = time.time()
 
         for testdata in TestData.objects.all():
@@ -34,9 +34,8 @@ class Command(BaseCommand):
         end = time.time()
         elapsed = end - start
 
-        print 'Finished in %.2f seconds' % elapsed
+        print 'django-simplejson: %.2f seconds' % elapsed
 
-        print 'Derializing json with simplejson'
         start = time.time()
 
         for testdata in TestData.objects.all():
@@ -45,7 +44,7 @@ class Command(BaseCommand):
         end = time.time()
         elapsed = end - start
 
-        print 'Finished in %.2f seconds' % elapsed
+        print 'simplejson: %.2f seconds' % elapsed
 
         print 'Derializing csv'
         start = time.time()
@@ -58,5 +57,5 @@ class Command(BaseCommand):
         end = time.time()
         elapsed = end - start
 
-        print 'Finished in %.2f seconds' % elapsed
+        print 'csv: %.2f seconds' % elapsed
 

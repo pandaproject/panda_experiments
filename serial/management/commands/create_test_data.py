@@ -14,26 +14,24 @@ class Command(BaseCommand):
     args = '[number of test rows to create]'
 
     def handle(self, *args, **kwargs):
+        TestData.objects.all().delete()
+
         i = 0
         rows = int(args[0])
 
         while i < rows:
-            data = {}
+            data = []
             j = 0
             columns = random.randint(0, 100)
-            names = []
 
             while j < columns:
-                k = self.random_string(random.randint(0, 100))
-                v = self.random_string(random.randint(0, 100))
-                names.append(k)
-                data[k] = v
+                data.append(self.random_string(random.randint(0, 100)))
 
                 j += 1
 
             json_text = simplejson.dumps(data)
             csv_stringio = StringIO.StringIO()
-            csv_writer = csv.DictWriter(csv_stringio, fieldnames=names)
+            csv_writer = csv.writer(csv_stringio)
             csv_writer.writerow(data)
             csv_text = csv_stringio.getvalue()
 
@@ -42,6 +40,9 @@ class Command(BaseCommand):
                 csv_text=csv_text)
 
             i += 1
+
+            if i % 100 == 0:
+                print 'Created %i' % i
 
     def random_string(self, n):
         return ''.join(random.choice(string.printable) for i in xrange(n))

@@ -2,5 +2,5 @@
 *.swo
 *.pyc
 DS_Store
-*.log
+*.log*
 build
