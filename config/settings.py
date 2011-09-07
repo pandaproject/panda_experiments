@@ -104,7 +104,8 @@ INSTALLED_APPS = (
     'django.contrib.gis',
     'django.contrib.sitemaps',
 
-    'serial'
+    'serial',
+    'scale'
 )
 
 # Predefined domain
