@@ -6,6 +6,7 @@ import string
 import StringIO
 
 from django.core.management.base import BaseCommand
+from django.db import transaction
 import simplejson
 
 from serial.models import TestData
@@ -13,8 +14,10 @@ from serial.models import TestData
 class Command(BaseCommand):
     args = '[number of test rows to create]'
 
+    @transaction.commit_manually
     def handle(self, *args, **kwargs):
         TestData.objects.all().delete()
+        transaction.commit()
 
         i = 0
         rows = int(args[0])
@@ -41,8 +44,9 @@ class Command(BaseCommand):
 
             i += 1
 
-            if i % 100 == 0:
+            if i % 1000 == 0:
                 print 'Created %i' % i
+                transaction.commit()
 
     def random_string(self, n):
         return ''.join(random.choice(string.printable) for i in xrange(n))
