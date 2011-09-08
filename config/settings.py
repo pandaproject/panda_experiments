@@ -25,8 +25,18 @@ DATABASES = {
         'PASSWORD': 'O7DBPyaGqN',                  # Not used with sqlite3.
         'HOST': 'localhost',                      # Set to empty string for localhost. Not used with sqlite3.
         'PORT': '5432',                      # Set to empty string for default. Not used with sqlite3.
+    },
+    'hstorage': {
+        'ENGINE': 'django_hstore.postgresql_psycopg2', # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
+        'NAME': 'panda_experiments_hstorage',                      # Or path to database file if using sqlite3.
+        'USER': 'panda_experiments_hstorage',                      # Not used with sqlite3.
+        'PASSWORD': 'O7DBPyaGqN',                  # Not used with sqlite3.
+        'HOST': 'localhost',                      # Set to empty string for localhost. Not used with sqlite3.
+        'PORT': '5432',                      # Set to empty string for default. Not used with sqlite3.
     }
 }
+
+DATABASE_ROUTERS = ['dbrouter.HStorageRouter']
 
 # Local time
 TIME_ZONE = 'America/Chicago'
@@ -105,7 +115,8 @@ INSTALLED_APPS = (
     'django.contrib.sitemaps',
 
     'serial',
-    'scale'
+    'scale',
+    'hstorage'
 )
 
 # Predefined domain

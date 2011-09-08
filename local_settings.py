@@ -2,6 +2,10 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.contrib.gis.db.backends.postgis',
         'NAME': 'panda_experiments',
+    },
+    'hstorage': {
+        'ENGINE': 'django_hstore.postgresql_psycopg2',
+        'NAME': 'panda_experiments_hstorage',
     }
 }
 
