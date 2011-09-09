@@ -4,3 +4,4 @@ geopy
 django-debug-toolbar
 psycopg2
 python-memcached
+sunburnt==0.5

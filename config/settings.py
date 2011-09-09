@@ -116,7 +116,8 @@ INSTALLED_APPS = (
 
     'serial',
     'scale',
-    'hstorage'
+    'hstorage',
+    'search'
 )
 
 # Predefined domain
