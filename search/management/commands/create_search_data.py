@@ -12,6 +12,8 @@ from csvkit.exceptions import CustomException, InvalidValueForTypeException
 from csvkit.typeinference import normalize_column_type, normalize_table
 import sunburnt
 
+DATASET_ID = 'TEST' # TEMP
+
 class InferredNormalFalsifiedException(CustomException):
     """
     Exception raised when a value with a previously inferred type fails to coerce.
@@ -48,9 +50,12 @@ class Command(BaseCommand):
         reader.next()
 
         buffered = []
+        normal_type_exceptions = []
+
+        # TEMP
+        reader =  islice(reader, 1000)
 
         for i, row in enumerate(reader, start=1):
-            print i
             data = {}
 
             for t, header, field, value in izip(normal_types, headers, solr_fields, row):
@@ -58,7 +63,8 @@ class Command(BaseCommand):
                     value = normalize_column_type([value], normal_type=t)[1][0]
                 except InvalidValueForTypeException:
                     # Convert exception to row-specific error
-                    raise InferredNormalFalsifiedException(i, header, value, t)
+                    normal_type_exceptions.append(InferredNormalFalsifiedException(i, header, value, t))
+                    continue
 
                 # No reason to send null fields to Solr (also sunburnt doesn't like them) 
                 if value == None:
@@ -76,15 +82,26 @@ class Command(BaseCommand):
                 elif t == time:
                     pass
                 else:
+                    # Note: if NoneType should never fall through to here 
                     raise TypeError('Unexpected normal type: %s' % t.__name__)
 
-            data['id'] = str(i)
-            data['full_text'] = '\n'.join(row)
-            buffered.append(data)
+            # If we've had a normal type exception, don't bother do the rest of this
+            if not normal_type_exceptions:
+                data['id'] = str(i)
+                data['dataset_id'] = DATASET_ID
+                data['full_text'] = '\n'.join(row)
+                buffered.append(data)
 
-            if i % 100 == 0:
-                solr.add(buffered)
-                buffered = []
-
-        solr.commit()
+                if i % 100 == 0:
+                    solr.add(buffered)
+                    buffered = []
+        
+        if not normal_type_exceptions:
+            solr.commit()
+        else:
+            # Rollback pending changes
+            solr.delete(queries=solr.query(dataset_id=DATASET_ID))
+            
+            for e in normal_type_exceptions:
+                print e
 
