@@ -21,7 +21,8 @@ class InferredNormalFalsifiedException(CustomException):
         self.column_name = column_name
         self.value = value
         self.normal_type = normal_type
-        msg = 'Row %i, column "%s": Unable to convert "%s" to %s' % (row_number, column_name, value, normal_type.__name__)
+        self.new_type = normalize_column_type([value])[0] 
+        msg = 'Row %i, column "%s": Unable to convert "%s" to %s. New type is %s.' % (row_number, column_name, value, normal_type.__name__, self.new_type.__name__)
         super(InferredNormalFalsifiedException, self).__init__(msg)
 
 class Command(BaseCommand):
