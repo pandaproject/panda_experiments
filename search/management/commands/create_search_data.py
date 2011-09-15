@@ -1,29 +1,42 @@
 #!/usr/bin/env python
 
 from datetime import date, datetime, time
-from itertools import islice
+from itertools import islice, izip
 import sys
 from types import NoneType
 
 from django.core.management.base import BaseCommand
 
 import csvkit
+from csvkit.exceptions import CustomException, InvalidValueForTypeException
 from csvkit.typeinference import normalize_column_type, normalize_table
 import sunburnt
+
+class InferredNormalFalsifiedException(CustomException):
+    """
+    Exception raised when a value with a previously inferred type fails to coerce.
+    """
+    def __init__(self, row_number, column_name, value, normal_type):
+        self.row_number = row_number
+        self.column_name = column_name
+        self.value = value
+        self.normal_type = normal_type
+        msg = 'Row %i, column "%s": Unable to convert "%s" to %s' % (row_number, column_name, value, normal_type.__name__)
+        super(InferredNormalFalsifiedException, self).__init__(msg)
 
 class Command(BaseCommand):
     def handle(self, *args, **kwargs):
         solr = sunburnt.SolrInterface("http://localhost:8983/solr/")
 
         reader = csvkit.CSVKitReader(open('data/Building_Permits.csv', 'r'))
-        header = reader.next()
+        headers = reader.next()
 
         first_hundred = islice(reader, 200)
-        normal_types, normal_values = normalize_table(first_hundred, len(header))
+        normal_types, normal_values = normalize_table(first_hundred, len(headers))
 
         solr_fields = []
 
-        for h, t in zip(header, normal_types):
+        for h, t in zip(headers, normal_types):
             if t == NoneType:
                 solr_fields.append(None)
             else:
@@ -35,12 +48,16 @@ class Command(BaseCommand):
 
         buffered = []
 
-        for i, row in enumerate(reader):
+        for i, row in enumerate(reader, start=1):
             print i
             data = {}
 
-            for t, field, value in zip(normal_types, solr_fields, row):
-                value = normalize_column_type([value], normal_type=t)[1][0]
+            for t, header, field, value in izip(normal_types, headers, solr_fields, row):
+                try:
+                    value = normalize_column_type([value], normal_type=t)[1][0]
+                except InvalidValueForTypeException:
+                    # Convert exception to row-specific error
+                    raise InferredNormalFalsifiedException(i, header, value, t)
 
                 # No reason to send null fields to Solr (also sunburnt doesn't like them) 
                 if value == None:
@@ -64,7 +81,7 @@ class Command(BaseCommand):
             data['full_text'] = '\n'.join(row)
             buffered.append(data)
 
-            if i % 500 == 0:
+            if i % 100 == 0:
                 solr.add(buffered)
                 buffered = []
 
